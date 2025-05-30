@@ -88,7 +88,7 @@ async function getAllBlogs(limit = 20, offset = 0) {
             .from('blogs')
             .select(`
                 *,
-                profiles!blogs_user_id_fkey(full_name),
+                profiles!user_id(full_name),
                 comments(count)
             `)
             .eq('is_published', true)
@@ -100,6 +100,9 @@ async function getAllBlogs(limit = 20, offset = 0) {
         return data || [];
     } catch (error) {
         console.error('Error fetching blogs:', error);
+        if (window.handleDatabaseError) {
+            handleDatabaseError(error, 'fetching blogs');
+        }
         throw error;
     }
 }
@@ -111,7 +114,7 @@ async function getBlogById(blogId) {
             .from('blogs')
             .select(`
                 *,
-                profiles!blogs_user_id_fkey(full_name)
+                profiles!user_id(full_name)
             `)
             .eq('id', blogId)
             .single();
@@ -159,7 +162,7 @@ async function searchBlogs(query, limit = 20) {
             .from('blogs')
             .select(`
                 *,
-                profiles!blogs_user_id_fkey(full_name),
+                profiles!user_id(full_name),
                 comments(count)
             `)
             .eq('is_published', true)

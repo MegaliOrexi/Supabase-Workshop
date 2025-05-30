@@ -17,7 +17,7 @@ async function addComment(blogId, content) {
             }])
             .select(`
                 *,
-                profiles!comments_user_id_fkey(full_name)
+                profiles!user_id(full_name)
             `)
             .single();
 
@@ -37,7 +37,7 @@ async function getComments(blogId) {
             .from('comments')
             .select(`
                 *,
-                profiles!comments_user_id_fkey(full_name)
+                profiles!user_id(full_name)
             `)
             .eq('blog_id', blogId)
             .order('created_at', { ascending: true });
@@ -219,7 +219,7 @@ async function handleNewComment(commentData) {
             .from('comments')
             .select(`
                 *,
-                profiles!comments_user_id_fkey(full_name)
+                profiles!user_id(full_name)
             `)
             .eq('id', commentData.id)
             .single();
