@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blog Hub - Home</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <i class="fas fa-blog"></i> Blog Hub
+            </a>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link active">Home</a>
+                <a href="create.html" class="nav-link" id="create-link" style="display: none;">Create Post</a>
+                <a href="profile.html" class="nav-link" id="profile-link" style="display: none;">Profile</a>
+                <button class="nav-link btn-link" id="auth-btn">Login</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Hero Section -->
+            <section class="hero">
+                <h1>Welcome to Blog Hub</h1>
+                <p>Discover amazing stories, share your thoughts, and connect with writers worldwide.</p>
+            </section>
+
+            <!-- Blog Posts Grid -->
+            <section class="blog-grid">
+                <div class="section-header">
+                    <h2>Latest Posts</h2>
+                    <div class="search-container">
+                        <input type="text" id="search-input" placeholder="Search posts..." class="search-input">
+                        <i class="fas fa-search search-icon"></i>
+                    </div>
+                </div>
+                
+                <!-- Loading State -->
+                <div id="loading" class="loading">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>Loading posts...</p>
+                </div>
+
+                <!-- Error State -->
+                <div id="error-state" class="error-state" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p>Failed to load posts. Please try again later.</p>
+                    <button onclick="loadBlogs()" class="btn btn-primary">Retry</button>
+                </div>
+
+                <!-- Empty State -->
+                <div id="empty-state" class="empty-state" style="display: none;">
+                    <i class="fas fa-file-alt"></i>
+                    <p>No blog posts found.</p>
+                    <p class="empty-subtitle">Be the first to share your story!</p>
+                    <a href="create.html" class="btn btn-primary">Create First Post</a>
+                </div>
+
+                <!-- Blog Posts Container -->
+                <div id="blog-posts" class="blog-posts"></div>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Blog Hub. Made with ❤️ and vanilla JavaScript.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/blog.js"></script>
+    
+    <script>
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', () => {
+            initAuth();
+            loadBlogs();
+            setupSearch();
+        });
+
+        // Setup search functionality
+        function setupSearch() {
+            const searchInput = document.getElementById('search-input');
+            let searchTimeout;
+
+            searchInput.addEventListener('input', (e) => {
+                clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    const query = e.target.value.trim();
+                    if (query) {
+                        searchBlogs(query);
+                    } else {
+                        loadBlogs();
+                    }
+                }, 300);
+            });
+        }
+    </script>
+</body>
+</html>

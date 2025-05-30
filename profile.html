@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile - Blog Hub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <i class="fas fa-blog"></i> Blog Hub
+            </a>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="create.html" class="nav-link" id="create-link">Create Post</a>
+                <a href="profile.html" class="nav-link active" id="profile-link">Profile</a>
+                <button class="nav-link btn-link" id="auth-btn">Logout</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Auth Required Message -->
+            <div id="auth-required" class="auth-required" style="display: none;">
+                <div class="auth-card">
+                    <i class="fas fa-lock"></i>
+                    <h2>Authentication Required</h2>
+                    <p>Please log in to view your profile.</p>
+                    <a href="login.html" class="btn btn-primary">Go to Login</a>
+                </div>
+            </div>
+
+            <!-- Profile Content -->
+            <div id="profile-content" style="display: none;">
+                <!-- Profile Header -->
+                <section class="profile-header">
+                    <div class="profile-info">
+                        <div class="profile-avatar">
+                            <i class="fas fa-user-circle"></i>
+                        </div>
+                        <div class="profile-details">
+                            <h1 id="profile-name">Loading...</h1>
+                            <p id="profile-email">Loading...</p>
+                            <div class="profile-stats">
+                                <div class="stat">
+                                    <span class="stat-number" id="published-count">0</span>
+                                    <span class="stat-label">Published Posts</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-number" id="draft-count">0</span>
+                                    <span class="stat-label">Drafts</span>
+                                </div>
+                                <div class="stat">
+                                    <span class="stat-number" id="total-comments">0</span>
+                                    <span class="stat-label">Total Comments</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <a href="create.html" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> New Post
+                        </a>
+                        <button id="edit-profile-btn" class="btn btn-secondary">
+                            <i class="fas fa-edit"></i> Edit Profile
+                        </button>
+                    </div>
+                </section>
+
+                <!-- Tabs -->
+                <section class="profile-tabs">
+                    <div class="tab-buttons">
+                        <button class="tab-button active" data-tab="published">
+                            <i class="fas fa-newspaper"></i> Published Posts
+                        </button>
+                        <button class="tab-button" data-tab="drafts">
+                            <i class="fas fa-file-alt"></i> Drafts
+                        </button>
+                    </div>
+
+                    <!-- Published Posts Tab -->
+                    <div id="published-tab" class="tab-content active">
+                        <div id="published-loading" class="loading">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading your published posts...</p>
+                        </div>
+
+                        <div id="published-empty" class="empty-state" style="display: none;">
+                            <i class="fas fa-newspaper"></i>
+                            <p>No published posts yet.</p>
+                            <p class="empty-subtitle">Share your first story with the world!</p>
+                            <a href="create.html" class="btn btn-primary">Create Your First Post</a>
+                        </div>
+
+                        <div id="published-posts" class="profile-posts"></div>
+                    </div>
+
+                    <!-- Drafts Tab -->
+                    <div id="drafts-tab" class="tab-content">
+                        <div id="drafts-loading" class="loading" style="display: none;">
+                            <i class="fas fa-spinner fa-spin"></i>
+                            <p>Loading your drafts...</p>
+                        </div>
+
+                        <div id="drafts-empty" class="empty-state" style="display: none;">
+                            <i class="fas fa-file-alt"></i>
+                            <p>No drafts found.</p>
+                            <p class="empty-subtitle">Start writing and save drafts as you go!</p>
+                            <a href="create.html" class="btn btn-primary">Start Writing</a>
+                        </div>
+
+                        <div id="draft-posts" class="profile-posts"></div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Profile</h3>
+                <button class="modal-close" onclick="closeEditModal()">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form id="edit-profile-form">
+                <div class="form-group">
+                    <label for="edit-name">Full Name</label>
+                    <input type="text" id="edit-name" name="fullName" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-email">Email</label>
+                    <input type="email" id="edit-email" name="email" disabled>
+                    <small>Email cannot be changed</small>
+                </div>
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeEditModal()">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="delete-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <h3>Delete Post</h3>
+            <p>Are you sure you want to delete this post? This action cannot be undone.</p>
+            <div class="modal-actions">
+                <button id="confirm-delete" class="btn btn-danger">Delete</button>
+                <button id="cancel-delete" class="btn btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Blog Hub. Made with ❤️ and vanilla JavaScript.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/blog.js"></script>
+    
+    <script>
+        let currentUser = null;
+        let publishedPosts = [];
+        let draftPosts = [];
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initAuth();
+            currentUser = await getCurrentUser();
+            
+            if (!currentUser) {
+                showAuthRequired();
+                return;
+            }
+
+            showProfileContent();
+            await loadProfileData();
+            setupTabs();
+            setupEditProfile();
+        });
+
+        // Show authentication required message
+        function showAuthRequired() {
+            document.getElementById('auth-required').style.display = 'flex';
+            document.getElementById('profile-content').style.display = 'none';
+        }
+
+        // Show profile content
+        function showProfileContent() {
+            document.getElementById('auth-required').style.display = 'none';
+            document.getElementById('profile-content').style.display = 'block';
+        }
+
+        // Load profile data
+        async function loadProfileData() {
+            try {
+                // Update profile info
+                document.getElementById('profile-name').textContent = currentUser.user_metadata.full_name || 'Anonymous User';
+                document.getElementById('profile-email').textContent = currentUser.email;
+
+                // Load user's blog posts
+                await loadUserPosts();
+                await loadUserStats();
+
+            } catch (error) {
+                console.error('Error loading profile data:', error);
+            }
+        }
+
+        // Load user's blog posts
+        async function loadUserPosts() {
+            try {
+                // Load published posts
+                publishedPosts = await getUserBlogs(currentUser.id, true);
+                displayPosts(publishedPosts, 'published-posts', 'published-empty', 'published-loading');
+
+                // Load drafts
+                draftPosts = await getUserBlogs(currentUser.id, false);
+                displayPosts(draftPosts, 'draft-posts', 'drafts-empty', 'drafts-loading');
+
+            } catch (error) {
+                console.error('Error loading user posts:', error);
+            }
+        }
+
+        // Load user statistics
+        async function loadUserStats() {
+            try {
+                const stats = await getUserStats(currentUser.id);
+                
+                document.getElementById('published-count').textContent = stats.published_count || 0;
+                document.getElementById('draft-count').textContent = stats.draft_count || 0;
+                document.getElementById('total-comments').textContent = stats.total_comments || 0;
+
+            } catch (error) {
+                console.error('Error loading user stats:', error);
+            }
+        }
+
+        // Display posts in container
+        function displayPosts(posts, containerId, emptyId, loadingId) {
+            const container = document.getElementById(containerId);
+            const emptyState = document.getElementById(emptyId);
+            const loadingState = document.getElementById(loadingId);
+
+            // Hide loading
+            loadingState.style.display = 'none';
+
+            if (posts.length === 0) {
+                emptyState.style.display = 'block';
+                container.innerHTML = '';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            container.innerHTML = posts.map(post => createPostCard(post)).join('');
+        }
+
+        // Create post card HTML
+        function createPostCard(post) {
+            const isPublished = post.is_published;
+            const statusIcon = isPublished ? 'fas fa-eye' : 'fas fa-file-alt';
+            const statusText = isPublished ? 'Published' : 'Draft';
+            const statusClass = isPublished ? 'status-published' : 'status-draft';
+
+            return `
+                <div class="post-card">
+                    <div class="post-header">
+                        <h3 class="post-title">
+                            ${isPublished ? `<a href="blog.html?id=${post.id}">` : ''}
+                            ${escapeHtml(post.title)}
+                            ${isPublished ? '</a>' : ''}
+                        </h3>
+                        <div class="post-status ${statusClass}">
+                            <i class="${statusIcon}"></i>
+                            <span>${statusText}</span>
+                        </div>
+                    </div>
+                    
+                    <div class="post-content">
+                        <p>${escapeHtml(truncateText(post.content, 150))}</p>
+                    </div>
+                    
+                    <div class="post-footer">
+                        <div class="post-meta">
+                            <span class="post-date">
+                                <i class="fas fa-calendar"></i>
+                                ${formatDate(post.created_at)}
+                            </span>
+                            ${isPublished ? `
+                                <span class="post-comments">
+                                    <i class="fas fa-comments"></i>
+                                    ${post.comment_count || 0} comments
+                                </span>
+                            ` : ''}
+                        </div>
+                        <div class="post-actions">
+                            <button onclick="editPost('${post.id}')" class="btn btn-small btn-secondary">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button onclick="deletePost('${post.id}', '${escapeHtml(post.title)}')" class="btn btn-small btn-danger">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Setup tab functionality
+        function setupTabs() {
+            const tabButtons = document.querySelectorAll('.tab-button');
+            const tabContents = document.querySelectorAll('.tab-content');
+
+            tabButtons.forEach(button => {
+                button.addEventListener('click', () => {
+                    const tabId = button.getAttribute('data-tab');
+                    
+                    // Remove active class from all buttons and contents
+                    tabButtons.forEach(btn => btn.classList.remove('active'));
+                    tabContents.forEach(content => content.classList.remove('active'));
+                    
+                    // Add active class to clicked button and corresponding content
+                    button.classList.add('active');
+                    document.getElementById(`${tabId}-tab`).classList.add('active');
+
+                    // Load drafts when drafts tab is clicked (if not already loaded)
+                    if (tabId === 'drafts' && draftPosts.length === 0) {
+                        document.getElementById('drafts-loading').style.display = 'flex';
+                        loadUserPosts();
+                    }
+                });
+            });
+        }
+
+        // Setup edit profile functionality
+        function setupEditProfile() {
+            const editBtn = document.getElementById('edit-profile-btn');
+            const editForm = document.getElementById('edit-profile-form');
+
+            editBtn.addEventListener('click', () => {
+                openEditModal();
+            });
+
+            editForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                await handleProfileUpdate();
+            });
+        }
+
+        // Open edit profile modal
+        function openEditModal() {
+            const modal = document.getElementById('edit-profile-modal');
+            const nameInput = document.getElementById('edit-name');
+            const emailInput = document.getElementById('edit-email');
+
+            nameInput.value = currentUser.user_metadata.full_name || '';
+            emailInput.value = currentUser.email;
+
+            modal.style.display = 'flex';
+        }
+
+        // Close edit profile modal
+        function closeEditModal() {
+            document.getElementById('edit-profile-modal').style.display = 'none';
+        }
+
+        // Handle profile update
+        async function handleProfileUpdate() {
+            const fullName = document.getElementById('edit-name').value.trim();
+
+            if (!fullName) {
+                alert('Please enter your full name');
+                return;
+            }
+
+            try {
+                await updateProfile(fullName);
+                
+                // Update UI
+                document.getElementById('profile-name').textContent = fullName;
+                currentUser.user_metadata.full_name = fullName;
+                
+                closeEditModal();
+                
+                // Show success message
+                showSuccessMessage('Profile updated successfully!');
+
+            } catch (error) {
+                console.error('Error updating profile:', error);
+                alert('Failed to update profile');
+            }
+        }
+
+        // Edit post
+        function editPost(postId) {
+            window.location.href = `create.html?edit=${postId}`;
+        }
+
+        // Delete post
+        function deletePost(postId, title) {
+            const modal = document.getElementById('delete-modal');
+            const confirmBtn = document.getElementById('confirm-delete');
+            const cancelBtn = document.getElementById('cancel-delete');
+
+            modal.style.display = 'flex';
+
+            confirmBtn.onclick = async () => {
+                try {
+                    await deleteBlog(postId);
+                    
+                    // Remove from local arrays
+                    publishedPosts = publishedPosts.filter(post => post.id !== postId);
+                    draftPosts = draftPosts.filter(post => post.id !== postId);
+                    
+                    // Refresh display
+                    displayPosts(publishedPosts, 'published-posts', 'published-empty', 'published-loading');
+                    displayPosts(draftPosts, 'draft-posts', 'drafts-empty', 'drafts-loading');
+                    
+                    // Update stats
+                    await loadUserStats();
+                    
+                    modal.style.display = 'none';
+                    showSuccessMessage('Post deleted successfully');
+
+                } catch (error) {
+                    console.error('Error deleting post:', error);
+                    alert('Failed to delete post');
+                }
+            };
+
+            cancelBtn.onclick = () => {
+                modal.style.display = 'none';
+            };
+
+            // Close modal on background click
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    modal.style.display = 'none';
+                }
+            };
+        }
+
+        // Show success message
+        function showSuccessMessage(message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.parentNode.removeChild(successDiv);
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>

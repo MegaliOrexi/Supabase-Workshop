@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Blog Hub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <i class="fas fa-blog"></i> Blog Hub
+            </a>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="auth-main">
+        <div class="auth-container">
+            <div class="auth-card">
+                <div class="auth-header">
+                    <h1 id="auth-title">Welcome Back</h1>
+                    <p id="auth-subtitle">Sign in to your account to continue</p>
+                </div>
+
+                <!-- Login Form -->
+                <form id="login-form" class="auth-form" style="display: block;">
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input 
+                                type="email" 
+                                id="login-email" 
+                                name="email" 
+                                placeholder="Enter your email"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input 
+                                type="password" 
+                                id="login-password" 
+                                name="password" 
+                                placeholder="Enter your password"
+                                required
+                            >
+                            <button type="button" class="password-toggle" onclick="togglePassword('login-password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="login-btn">
+                        <i class="fas fa-sign-in-alt"></i>
+                        <span>Sign In</span>
+                    </button>
+
+                    <div class="auth-footer">
+                        <p>Don't have an account? 
+                            <button type="button" id="show-signup" class="btn-link">Sign up here</button>
+                        </p>
+                    </div>
+                </form>
+
+                <!-- Sign Up Form -->
+                <form id="signup-form" class="auth-form" style="display: none;">
+                    <div class="form-group">
+                        <label for="signup-name">Full Name</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-user input-icon"></i>
+                            <input 
+                                type="text" 
+                                id="signup-name" 
+                                name="fullName" 
+                                placeholder="Enter your full name"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input 
+                                type="email" 
+                                id="signup-email" 
+                                name="email" 
+                                placeholder="Enter your email"
+                                required
+                            >
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="signup-password">Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input 
+                                type="password" 
+                                id="signup-password" 
+                                name="password" 
+                                placeholder="Create a strong password"
+                                required
+                                minlength="6"
+                            >
+                            <button type="button" class="password-toggle" onclick="togglePassword('signup-password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                        <div class="password-requirements">
+                            <small>Password must be at least 6 characters long</small>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="confirm-password">Confirm Password</label>
+                        <div class="input-wrapper">
+                            <i class="fas fa-lock input-icon"></i>
+                            <input 
+                                type="password" 
+                                id="confirm-password" 
+                                name="confirmPassword" 
+                                placeholder="Confirm your password"
+                                required
+                            >
+                            <button type="button" class="password-toggle" onclick="togglePassword('confirm-password')">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-full" id="signup-btn">
+                        <i class="fas fa-user-plus"></i>
+                        <span>Create Account</span>
+                    </button>
+
+                    <div class="auth-footer">
+                        <p>Already have an account? 
+                            <button type="button" id="show-login" class="btn-link">Sign in here</button>
+                        </p>
+                    </div>
+                </form>
+
+                <!-- Loading State -->
+                <div id="auth-loading" class="auth-loading" style="display: none;">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p id="loading-message">Signing you in...</p>
+                </div>
+
+                <!-- Error Message -->
+                <div id="auth-error" class="auth-error" style="display: none;">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <p id="error-message"></p>
+                </div>
+
+                <!-- Success Message -->
+                <div id="auth-success" class="auth-success" style="display: none;">
+                    <i class="fas fa-check-circle"></i>
+                    <p id="success-message"></p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Blog Hub. Made with ❤️ and vanilla JavaScript.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    
+    <script>
+        let isLoginMode = true;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            // Check if user is already logged in
+            const user = await getCurrentUser();
+            if (user) {
+                // Redirect to home page if already logged in
+                const returnUrl = getReturnUrl();
+                window.location.href = returnUrl;
+                return;
+            }
+
+            setupFormToggle();
+            setupForms();
+        });
+
+        // Get return URL from query parameters
+        function getReturnUrl() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return urlParams.get('return') || 'index.html';
+        }
+
+        // Setup form toggle between login and signup
+        function setupFormToggle() {
+            const showSignupBtn = document.getElementById('show-signup');
+            const showLoginBtn = document.getElementById('show-login');
+
+            showSignupBtn.addEventListener('click', () => {
+                switchToSignup();
+            });
+
+            showLoginBtn.addEventListener('click', () => {
+                switchToLogin();
+            });
+        }
+
+        // Switch to signup mode
+        function switchToSignup() {
+            isLoginMode = false;
+            document.getElementById('login-form').style.display = 'none';
+            document.getElementById('signup-form').style.display = 'block';
+            document.getElementById('auth-title').textContent = 'Create Account';
+            document.getElementById('auth-subtitle').textContent = 'Join our community of writers';
+            clearMessages();
+        }
+
+        // Switch to login mode
+        function switchToLogin() {
+            isLoginMode = true;
+            document.getElementById('signup-form').style.display = 'none';
+            document.getElementById('login-form').style.display = 'block';
+            document.getElementById('auth-title').textContent = 'Welcome Back';
+            document.getElementById('auth-subtitle').textContent = 'Sign in to your account to continue';
+            clearMessages();
+        }
+
+        // Setup form submissions
+        function setupForms() {
+            const loginForm = document.getElementById('login-form');
+            const signupForm = document.getElementById('signup-form');
+
+            loginForm.addEventListener('submit', handleLogin);
+            signupForm.addEventListener('submit', handleSignup);
+        }
+
+        // Handle login form submission
+        async function handleLogin(event) {
+            event.preventDefault();
+            
+            const email = document.getElementById('login-email').value.trim();
+            const password = document.getElementById('login-password').value;
+
+            if (!email || !password) {
+                showError('Please fill in all fields');
+                return;
+            }
+
+            try {
+                showLoading('Signing you in...');
+                
+                const result = await signIn(email, password);
+                
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+
+                showSuccess('Login successful! Redirecting...');
+                
+                // Redirect after short delay
+                setTimeout(() => {
+                    const returnUrl = getReturnUrl();
+                    window.location.href = returnUrl;
+                }, 1000);
+
+            } catch (error) {
+                console.error('Login error:', error);
+                hideLoading();
+                
+                let errorMessage = 'Login failed. Please try again.';
+                if (error.message.includes('Invalid login credentials')) {
+                    errorMessage = 'Invalid email or password. Please check your credentials.';
+                } else if (error.message.includes('Email not confirmed')) {
+                    errorMessage = 'Please check your email and confirm your account before signing in.';
+                }
+                
+                showError(errorMessage);
+            }
+        }
+
+        // Handle signup form submission
+        async function handleSignup(event) {
+            event.preventDefault();
+            
+            const fullName = document.getElementById('signup-name').value.trim();
+            const email = document.getElementById('signup-email').value.trim();
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+
+            // Validation
+            if (!fullName || !email || !password || !confirmPassword) {
+                showError('Please fill in all fields');
+                return;
+            }
+
+            if (password !== confirmPassword) {
+                showError('Passwords do not match');
+                return;
+            }
+
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters long');
+                return;
+            }
+
+            try {
+                showLoading('Creating your account...');
+                
+                const result = await signUp(email, password, fullName);
+                
+                if (result.error) {
+                    throw new Error(result.error.message);
+                }
+
+                showSuccess('Account created successfully! Please check your email to confirm your account.');
+                
+                // Switch to login form after successful signup
+                setTimeout(() => {
+                    switchToLogin();
+                    document.getElementById('login-email').value = email;
+                }, 2000);
+
+            } catch (error) {
+                console.error('Signup error:', error);
+                hideLoading();
+                
+                let errorMessage = 'Account creation failed. Please try again.';
+                if (error.message.includes('already registered')) {
+                    errorMessage = 'An account with this email already exists. Please sign in instead.';
+                }
+                
+                showError(errorMessage);
+            }
+        }
+
+        // Toggle password visibility
+        function togglePassword(inputId) {
+            const input = document.getElementById(inputId);
+            const icon = input.parentNode.querySelector('.password-toggle i');
+            
+            if (input.type === 'password') {
+                input.type = 'text';
+                icon.className = 'fas fa-eye-slash';
+            } else {
+                input.type = 'password';
+                icon.className = 'fas fa-eye';
+            }
+        }
+
+        // Show loading state
+        function showLoading(message) {
+            clearMessages();
+            document.getElementById('loading-message').textContent = message;
+            document.getElementById('auth-loading').style.display = 'block';
+            
+            // Disable form buttons
+            document.getElementById('login-btn').disabled = true;
+            document.getElementById('signup-btn').disabled = true;
+        }
+
+        // Hide loading state
+        function hideLoading() {
+            document.getElementById('auth-loading').style.display = 'none';
+            
+            // Re-enable form buttons
+            document.getElementById('login-btn').disabled = false;
+            document.getElementById('signup-btn').disabled = false;
+        }
+
+        // Show error message
+        function showError(message) {
+            clearMessages();
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('auth-error').style.display = 'block';
+        }
+
+        // Show success message
+        function showSuccess(message) {
+            clearMessages();
+            document.getElementById('success-message').textContent = message;
+            document.getElementById('auth-success').style.display = 'block';
+        }
+
+        // Clear all messages
+        function clearMessages() {
+            document.getElementById('auth-loading').style.display = 'none';
+            document.getElementById('auth-error').style.display = 'none';
+            document.getElementById('auth-success').style.display = 'none';
+        }
+    </script>
+</body>
+</html>

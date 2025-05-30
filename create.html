@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Post - Blog Hub</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <!-- Navigation Header -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="nav-logo">
+                <i class="fas fa-blog"></i> Blog Hub
+            </a>
+            <div class="nav-menu">
+                <a href="index.html" class="nav-link">Home</a>
+                <a href="create.html" class="nav-link active" id="create-link">Create Post</a>
+                <a href="profile.html" class="nav-link" id="profile-link">Profile</a>
+                <button class="nav-link btn-link" id="auth-btn">Login</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <div class="container">
+            <!-- Auth Required Message -->
+            <div id="auth-required" class="auth-required" style="display: none;">
+                <div class="auth-card">
+                    <i class="fas fa-lock"></i>
+                    <h2>Authentication Required</h2>
+                    <p>Please log in to create or edit blog posts.</p>
+                    <a href="login.html" class="btn btn-primary">Go to Login</a>
+                </div>
+            </div>
+
+            <!-- Create/Edit Form -->
+            <div id="create-form-container" class="create-container" style="display: none;">
+                <div class="create-header">
+                    <h1 id="form-title">Create New Post</h1>
+                    <p id="form-subtitle">Share your thoughts with the world</p>
+                </div>
+
+                <form id="blog-form" class="blog-form">
+                    <!-- Title Input -->
+                    <div class="form-group">
+                        <label for="blog-title">Title *</label>
+                        <input 
+                            type="text" 
+                            id="blog-title" 
+                            name="title" 
+                            placeholder="Enter an engaging title for your post"
+                            required
+                            maxlength="200"
+                        >
+                        <div class="char-count">
+                            <span id="title-count">0</span>/200
+                        </div>
+                    </div>
+
+                    <!-- Content Textarea -->
+                    <div class="form-group">
+                        <label for="blog-content">Content *</label>
+                        <textarea 
+                            id="blog-content" 
+                            name="content" 
+                            placeholder="Write your blog post content here. You can use line breaks for paragraphs."
+                            required
+                            rows="15"
+                        ></textarea>
+                        <div class="char-count">
+                            <span id="content-count">0</span> characters
+                        </div>
+                        <div class="form-help">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Tip: Use double line breaks to create new paragraphs</span>
+                        </div>
+                    </div>
+
+                    <!-- Form Actions -->
+                    <div class="form-actions">
+                        <button type="button" id="save-draft-btn" class="btn btn-secondary">
+                            <i class="fas fa-save"></i> Save as Draft
+                        </button>
+                        <button type="submit" id="publish-btn" class="btn btn-primary">
+                            <i class="fas fa-paper-plane"></i> <span id="publish-text">Publish Post</span>
+                        </button>
+                        <button type="button" id="cancel-btn" class="btn btn-outline">
+                            <i class="fas fa-times"></i> Cancel
+                        </button>
+                    </div>
+
+                    <!-- Loading State -->
+                    <div id="form-loading" class="form-loading" style="display: none;">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <span id="loading-text">Publishing your post...</span>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 Blog Hub. Made with ❤️ and vanilla JavaScript.</p>
+        </div>
+    </footer>
+
+    <!-- Success Modal -->
+    <div id="success-modal" class="modal" style="display: none;">
+        <div class="modal-content success-modal">
+            <i class="fas fa-check-circle success-icon"></i>
+            <h3 id="success-title">Post Published!</h3>
+            <p id="success-message">Your blog post has been successfully published.</p>
+            <div class="modal-actions">
+                <button id="view-post-btn" class="btn btn-primary">View Post</button>
+                <button id="create-another-btn" class="btn btn-secondary">Create Another</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabaseClient.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/auth.js"></script>
+    <script src="js/blog.js"></script>
+    
+    <script>
+        let currentUser = null;
+        let isEditMode = false;
+        let editingBlogId = null;
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', async () => {
+            await initAuth();
+            currentUser = await getCurrentUser();
+            
+            if (!currentUser) {
+                showAuthRequired();
+                return;
+            }
+
+            showCreateForm();
+            setupForm();
+            checkEditMode();
+        });
+
+        // Check if we're in edit mode
+        function checkEditMode() {
+            const urlParams = new URLSearchParams(window.location.search);
+            editingBlogId = urlParams.get('edit');
+            
+            if (editingBlogId) {
+                isEditMode = true;
+                loadBlogForEdit();
+                updateUIForEditMode();
+            }
+        }
+
+        // Update UI for edit mode
+        function updateUIForEditMode() {
+            document.getElementById('form-title').textContent = 'Edit Post';
+            document.getElementById('form-subtitle').textContent = 'Update your blog post';
+            document.getElementById('publish-text').textContent = 'Update Post';
+        }
+
+        // Load blog post for editing
+        async function loadBlogForEdit() {
+            try {
+                const blog = await getBlogById(editingBlogId);
+                
+                if (!blog) {
+                    alert('Blog post not found');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // Check if user owns the blog
+                if (blog.user_id !== currentUser.id) {
+                    alert('You can only edit your own posts');
+                    window.location.href = 'index.html';
+                    return;
+                }
+
+                // Populate form with existing data
+                document.getElementById('blog-title').value = blog.title;
+                document.getElementById('blog-content').value = blog.content;
+                
+                // Update character counts
+                updateCharCount();
+                
+            } catch (error) {
+                console.error('Error loading blog for edit:', error);
+                alert('Failed to load blog post');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Show authentication required message
+        function showAuthRequired() {
+            document.getElementById('auth-required').style.display = 'flex';
+            document.getElementById('create-form-container').style.display = 'none';
+        }
+
+        // Show create form
+        function showCreateForm() {
+            document.getElementById('auth-required').style.display = 'none';
+            document.getElementById('create-form-container').style.display = 'block';
+        }
+
+        // Setup form functionality
+        function setupForm() {
+            const form = document.getElementById('blog-form');
+            const titleInput = document.getElementById('blog-title');
+            const contentTextarea = document.getElementById('blog-content');
+            const saveDraftBtn = document.getElementById('save-draft-btn');
+            const cancelBtn = document.getElementById('cancel-btn');
+
+            // Character counting
+            titleInput.addEventListener('input', updateCharCount);
+            contentTextarea.addEventListener('input', updateCharCount);
+
+            // Form submission
+            form.addEventListener('submit', handleFormSubmit);
+
+            // Save draft button
+            saveDraftBtn.addEventListener('click', () => handleFormSubmit(null, true));
+
+            // Cancel button
+            cancelBtn.addEventListener('click', () => {
+                if (confirm('Are you sure you want to cancel? Your changes will be lost.')) {
+                    window.location.href = 'index.html';
+                }
+            });
+
+            // Auto-save draft every 30 seconds
+            setInterval(autoSaveDraft, 30000);
+
+            // Initial character count
+            updateCharCount();
+        }
+
+        // Update character counts
+        function updateCharCount() {
+            const titleInput = document.getElementById('blog-title');
+            const contentTextarea = document.getElementById('blog-content');
+            
+            document.getElementById('title-count').textContent = titleInput.value.length;
+            document.getElementById('content-count').textContent = contentTextarea.value.length;
+        }
+
+        // Handle form submission
+        async function handleFormSubmit(event, isDraft = false) {
+            if (event) {
+                event.preventDefault();
+            }
+
+            const title = document.getElementById('blog-title').value.trim();
+            const content = document.getElementById('blog-content').value.trim();
+
+            // Validation
+            if (!title || !content) {
+                alert('Please fill in both title and content');
+                return;
+            }
+
+            if (title.length > 200) {
+                alert('Title must be 200 characters or less');
+                return;
+            }
+
+            try {
+                showLoading(isDraft ? 'Saving draft...' : (isEditMode ? 'Updating post...' : 'Publishing post...'));
+
+                const blogData = {
+                    title,
+                    content,
+                    is_published: !isDraft
+                };
+
+                let result;
+                if (isEditMode) {
+                    result = await updateBlog(editingBlogId, blogData);
+                } else {
+                    result = await createBlog(blogData);
+                }
+
+                hideLoading();
+
+                if (isDraft) {
+                    showSuccessMessage('Draft Saved!', 'Your draft has been saved successfully.');
+                } else {
+                    showSuccessModal(result.id);
+                }
+
+            } catch (error) {
+                console.error('Error saving blog:', error);
+                hideLoading();
+                alert('Failed to save blog post. Please try again.');
+            }
+        }
+
+        // Auto-save draft
+        async function autoSaveDraft() {
+            const title = document.getElementById('blog-title').value.trim();
+            const content = document.getElementById('blog-content').value.trim();
+
+            if (!title && !content) return;
+
+            try {
+                const blogData = {
+                    title: title || 'Untitled Draft',
+                    content: content || '',
+                    is_published: false
+                };
+
+                if (isEditMode) {
+                    await updateBlog(editingBlogId, blogData);
+                } else {
+                    // Only auto-save if this is a new post with content
+                    if (content) {
+                        const result = await createBlog(blogData);
+                        // Switch to edit mode after first auto-save
+                        if (!isEditMode) {
+                            isEditMode = true;
+                            editingBlogId = result.id;
+                            updateUIForEditMode();
+                            // Update URL without reloading page
+                            window.history.replaceState({}, '', `create.html?edit=${result.id}`);
+                        }
+                    }
+                }
+
+                // Show brief auto-save indicator
+                showAutoSaveIndicator();
+
+            } catch (error) {
+                console.error('Auto-save failed:', error);
+            }
+        }
+
+        // Show auto-save indicator
+        function showAutoSaveIndicator() {
+            const indicator = document.createElement('div');
+            indicator.className = 'auto-save-indicator';
+            indicator.innerHTML = '<i class="fas fa-check"></i> Auto-saved';
+            document.body.appendChild(indicator);
+
+            setTimeout(() => {
+                if (indicator.parentNode) {
+                    indicator.parentNode.removeChild(indicator);
+                }
+            }, 2000);
+        }
+
+        // Show loading state
+        function showLoading(text) {
+            document.getElementById('loading-text').textContent = text;
+            document.getElementById('form-loading').style.display = 'flex';
+            document.getElementById('publish-btn').disabled = true;
+            document.getElementById('save-draft-btn').disabled = true;
+        }
+
+        // Hide loading state
+        function hideLoading() {
+            document.getElementById('form-loading').style.display = 'none';
+            document.getElementById('publish-btn').disabled = false;
+            document.getElementById('save-draft-btn').disabled = false;
+        }
+
+        // Show success modal
+        function showSuccessModal(blogId) {
+            const modal = document.getElementById('success-modal');
+            const viewPostBtn = document.getElementById('view-post-btn');
+            const createAnotherBtn = document.getElementById('create-another-btn');
+
+            modal.style.display = 'flex';
+
+            viewPostBtn.onclick = () => {
+                window.location.href = `blog.html?id=${blogId}`;
+            };
+
+            createAnotherBtn.onclick = () => {
+                window.location.href = 'create.html';
+            };
+
+            // Close modal on background click
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    window.location.href = 'index.html';
+                }
+            };
+        }
+
+        // Show success message (for drafts)
+        function showSuccessMessage(title, message) {
+            const successDiv = document.createElement('div');
+            successDiv.className = 'success-message';
+            successDiv.innerHTML = `
+                <i class="fas fa-check-circle"></i>
+                <strong>${title}</strong>
+                <span>${message}</span>
+            `;
+            
+            document.body.appendChild(successDiv);
+            
+            setTimeout(() => {
+                if (successDiv.parentNode) {
+                    successDiv.parentNode.removeChild(successDiv);
+                }
+            }, 3000);
+        }
+    </script>
+</body>
+</html>
