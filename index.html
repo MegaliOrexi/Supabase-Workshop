@@ -86,10 +86,15 @@
     
     <script>
         // Initialize page
-        document.addEventListener('DOMContentLoaded', () => {
-            initAuth();
-            loadBlogs();
-            setupSearch();
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await initializeDatabase();
+                initAuth();
+                loadBlogs();
+                setupSearch();
+            } catch (error) {
+                console.error('Application initialization error:', error);
+            }
         });
 
         // Setup search functionality
