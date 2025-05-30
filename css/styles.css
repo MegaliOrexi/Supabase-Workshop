@@ -337,7 +337,11 @@ a:hover {
 }
 
 .blog-card-title {
-  margin-bottom: var(--spacing-md);
+  margin: 0;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .blog-card-title a {
@@ -350,12 +354,19 @@ a:hover {
 }
 
 .blog-card-content {
-  margin-bottom: var(--spacing-lg);
+  margin: var(--spacing-md) 0;
+  overflow: hidden;
 }
 
 .blog-card-content p {
-  color: hsl(var(--text-secondary));
-  line-height: 1.6;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+  max-height: 4.5em;
 }
 
 .blog-card-footer {
@@ -904,6 +915,10 @@ a:hover {
 .post-title {
   margin: 0;
   flex: 1;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .post-title a {
@@ -932,12 +947,19 @@ a:hover {
 }
 
 .post-content {
-  margin-bottom: var(--spacing-md);
+  margin: var(--spacing-md) 0;
+  overflow: hidden;
 }
 
 .post-content p {
   margin: 0;
-  color: hsl(var(--text-secondary));
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.5;
+  max-height: 3em;
 }
 
 .post-footer {

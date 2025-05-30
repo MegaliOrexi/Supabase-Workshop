@@ -162,7 +162,7 @@ async function searchBlogs(query, limit = 20) {
             .from('blogs')
             .select(`
                 *,
-                profiles!user_id(full_name),
+                profiles!user_id(full_name),    
                 comments(count)
             `)
             .eq('is_published', true)

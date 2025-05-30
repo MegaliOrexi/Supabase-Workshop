@@ -51,9 +51,6 @@ A modern, responsive blog platform built with vanilla JavaScript and Supabase. F
    Run these SQL commands in the Supabase SQL Editor:
 
    ```sql
-   -- Enable RLS (Row Level Security)
-   ALTER TABLE auth.users ENABLE ROW LEVEL SECURITY;
-
    -- Create profiles table
    CREATE TABLE profiles (
      id UUID REFERENCES auth.users(id) ON DELETE CASCADE PRIMARY KEY,
@@ -63,24 +60,26 @@ A modern, responsive blog platform built with vanilla JavaScript and Supabase. F
    );
 
    -- Create blogs table
-   CREATE TABLE blogs (
+    CREATE TABLE IF NOT EXISTS blogs (
      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
      title TEXT NOT NULL,
      content TEXT NOT NULL,
      is_published BOOLEAN DEFAULT FALSE,
-     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
      updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
+    );
+
 
    -- Create comments table
-   CREATE TABLE comments (
+    CREATE TABLE IF NOT EXISTS comments (
      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
      blog_id UUID REFERENCES blogs(id) ON DELETE CASCADE NOT NULL,
-     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+     user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
      content TEXT NOT NULL,
      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
-   );
+    );
+
 
    -- RLS Policies for profiles
    ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
