@@ -60,6 +60,28 @@
                         </div>
                     </div>
 
+                    <!-- Image Upload -->
+                    <div class="form-group">
+                        <label for="blog-image">Featured Image</label>
+                        <div class="image-upload-container">
+                            <input 
+                                type="file" 
+                                id="blog-image" 
+                                name="image" 
+                                accept="image/*"
+                                class="image-upload-input"
+                            >
+                            <div class="image-preview" id="image-preview">
+                                <i class="fas fa-image"></i>
+                                <span>Click to upload an image</span>
+                            </div>
+                        </div>
+                        <div class="form-help">
+                            <i class="fas fa-info-circle"></i>
+                            <span>Recommended size: 1200x630 pixels. Max file size: 5MB</span>
+                        </div>
+                    </div>
+
                     <!-- Content Textarea -->
                     <div class="form-group">
                         <label for="blog-content">Content *</label>
@@ -219,10 +241,37 @@
             const contentTextarea = document.getElementById('blog-content');
             const saveDraftBtn = document.getElementById('save-draft-btn');
             const cancelBtn = document.getElementById('cancel-btn');
+            const imageInput = document.getElementById('blog-image');
+            const imagePreview = document.getElementById('image-preview');
 
             // Character counting
             titleInput.addEventListener('input', updateCharCount);
             contentTextarea.addEventListener('input', updateCharCount);
+
+            // Image upload preview
+            imageInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 5 * 1024 * 1024) { // 5MB limit
+                        alert('Image size should be less than 5MB');
+                        imageInput.value = '';
+                        return;
+                    }
+
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        imagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+                        imagePreview.classList.add('has-image');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    imagePreview.innerHTML = `
+                        <i class="fas fa-image"></i>
+                        <span>Click to upload an image</span>
+                    `;
+                    imagePreview.classList.remove('has-image');
+                }
+            });
 
             // Form submission
             form.addEventListener('submit', handleFormSubmit);
@@ -254,32 +303,26 @@
         }
 
         // Handle form submission
-        async function handleFormSubmit(event, isDraft = false) {
-            if (event) {
-                event.preventDefault();
-            }
+        async function handleFormSubmit(e, isDraft = false) {
+            if (e) e.preventDefault();
 
             const title = document.getElementById('blog-title').value.trim();
             const content = document.getElementById('blog-content').value.trim();
+            const image = document.getElementById('blog-image').files[0];
 
-            // Validation
             if (!title || !content) {
-                alert('Please fill in both title and content');
-                return;
-            }
-
-            if (title.length > 200) {
-                alert('Title must be 200 characters or less');
+                alert('Please fill in all required fields');
                 return;
             }
 
             try {
-                showLoading(isDraft ? 'Saving draft...' : (isEditMode ? 'Updating post...' : 'Publishing post...'));
+                showLoading(isDraft ? 'Saving draft...' : 'Publishing post...');
 
                 const blogData = {
                     title,
                     content,
-                    is_published: !isDraft
+                    is_published: !isDraft,
+                    image
                 };
 
                 let result;
@@ -290,12 +333,7 @@
                 }
 
                 hideLoading();
-
-                if (isDraft) {
-                    showSuccessMessage('Draft Saved!', 'Your draft has been saved successfully.');
-                } else {
-                    showSuccessModal(result.id);
-                }
+                showSuccessModal(result.id);
 
             } catch (error) {
                 console.error('Error saving blog:', error);

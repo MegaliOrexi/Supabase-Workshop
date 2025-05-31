@@ -64,6 +64,7 @@ A modern, responsive blog platform built with vanilla JavaScript and Supabase. F
      id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
      title TEXT NOT NULL,
      content TEXT NOT NULL,
+     image_url TEXT NOT NULL,
      is_published BOOLEAN DEFAULT FALSE,
      user_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
      created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),

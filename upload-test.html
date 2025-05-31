@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Supabase Image Upload Test</title>
+</head>
+<body>
+  <h1>Upload Image to Supabase</h1>
+  <input type="file" id="fileInput" accept="image/*" />
+  <button id="uploadButton">Upload</button>
+
+  <p id="status"></p>
+  <img id="preview" style="max-width: 300px; display: none;" />
+
+  <script type="module">
+    import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm";
+
+    const supabaseUrl = "https://umuxgawvdxyhrdwceagi.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVtdXhnYXd2ZHh5aHJkd2NlYWdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDg2MTgwNTgsImV4cCI6MjA2NDE5NDA1OH0.zH3Vcl4LHf3UeBkkKLsLXjuJarOaIx7FefdbJJQDbng"; // anon key is enough with correct RLS
+    const bucket = "blog-images";
+
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    document.getElementById("uploadButton").addEventListener("click", async () => {
+      const fileInput = document.getElementById('fileInput');
+      const status = document.getElementById('status');
+      const preview = document.getElementById('preview');
+
+
+      const { userData, userError } = await supabase.auth.signInWithPassword({
+                email: 'mohammad.zain575@gmail.com',
+                password: 'Fatain'
+            });
+
+        if (userError) console.error('Login failed:', userError);
+        else console.log('Logged in:', userData);
+
+      if (!fileInput.files.length) {
+        status.textContent = "No file selected.";
+        return;
+      }
+
+      const file = fileInput.files[0];
+      const filePath = `images/${Date.now()}_${file.name}`;
+
+      const { data, error } = await supabase.storage
+        .from(bucket) 
+        .upload(filePath, file);
+
+      if (error) {
+        console.error(error);
+        status.textContent = `Upload failed: ${error.message}`;
+      } else {
+        const { data: publicData } = supabase.storage
+          .from(bucket)
+          .getPublicUrl(filePath);
+
+        status.textContent = "Upload successful!";
+        preview.src = publicData.publicUrl;
+        preview.style.display = "block";
+      }
+    });
+  </script>
+</body>
+</html>

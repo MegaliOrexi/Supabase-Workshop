@@ -8,18 +8,49 @@ async function createBlog(blogData) {
             throw new Error('User not authenticated');
         }
 
+
+        let imageUrl = blogData.image_url;
+        if (blogData.image) {
+            const fileExt = blogData.image.name.split('.').pop();
+            const fileName = `${Date.now()}.${fileExt}`;
+            const filePath = `images/${fileName}`;
+        
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('blog-images')
+                .upload(filePath, blogData.image, {
+                    contentType: blogData.image.type
+                });
+        
+            if (uploadError) {
+                console.error('Upload error:', uploadError);
+                throw uploadError;
+            }
+        
+            const { data: publicData } = supabase.storage
+                .from('blog-images')
+                .getPublicUrl(filePath);
+        
+            imageUrl = publicData.publicUrl;
+        }
+        
+
+        // Create blog post with image URL
         const { data, error } = await supabase
             .from('blogs')
             .insert([{
                 title: blogData.title,
                 content: blogData.content,
                 is_published: blogData.is_published || false,
-                user_id: user.id
+                user_id: user.id,
+                image_url: imageUrl
             }])
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Database error:', error);
+            throw error;
+        }
 
         return data;
     } catch (error) {
@@ -36,20 +67,48 @@ async function updateBlog(blogId, blogData) {
             throw new Error('User not authenticated');
         }
 
+        let imageUrl = blogData.image_url;
+        if (blogData.image) {
+            const fileExt = blogData.image.name.split('.').pop();
+            const fileName = `${Date.now()}.${fileExt}`;
+            const filePath = `images/${fileName}`;
+        
+            const { data: uploadData, error: uploadError } = await supabase.storage
+                .from('blog-images')
+                .upload(filePath, blogData.image, {
+                    contentType: blogData.image.type
+                });
+        
+            if (uploadError) {
+                console.error('Upload error:', uploadError);
+                throw uploadError;
+            }
+        
+            const { data: publicData } = supabase.storage
+                .from('blog-images')
+                .getPublicUrl(filePath);
+        
+            imageUrl = publicData.publicUrl;
+        }
+        
         const { data, error } = await supabase
             .from('blogs')
             .update({
                 title: blogData.title,
                 content: blogData.content,
                 is_published: blogData.is_published,
-                updated_at: new Date().toISOString()
+                updated_at: new Date().toISOString(),
+                image_url: imageUrl
             })
             .eq('id', blogId)
-            .eq('user_id', user.id) // Ensure user owns the blog
+            .eq('user_id', user.id)
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('Database error:', error);
+            throw error;
+        }
 
         return data;
     } catch (error) {
@@ -320,6 +379,11 @@ function createBlogCard(blog) {
     
     return `
         <article class="blog-card">
+            ${blog.image_url ? `
+                <div class="blog-card-image">
+                    <img src="${escapeHtml(blog.image_url)}" alt="${escapeHtml(blog.title)}">
+                </div>
+            ` : ''}
             <div class="blog-card-header">
                 <h2 class="blog-card-title">
                     <a href="blog.html?id=${blog.id}">${escapeHtml(blog.title)}</a>
