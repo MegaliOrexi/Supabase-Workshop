@@ -348,16 +348,3 @@ function handleError(error, context = '') {
     
     showToast(message, 'error');
 }
-
-// Analytics helpers (for future implementation)
-const analytics = {
-    track: (event, properties = {}) => {
-        // Placeholder for analytics tracking
-        console.log('Analytics event:', event, properties);
-    },
-    
-    page: (pageName) => {
-        // Placeholder for page tracking
-        console.log('Analytics page view:', pageName);
-    }
-};
