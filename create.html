@@ -212,6 +212,19 @@
                 document.getElementById('blog-title').value = blog.title;
                 document.getElementById('blog-content').value = blog.content;
                 
+                // Display existing image if present
+                const imagePreview = document.getElementById('image-preview');
+                if (blog.image_url) {
+                    imagePreview.innerHTML = `<img src="${blog.image_url}" alt="Blog image">`;
+                    imagePreview.classList.add('has-image');
+                } else {
+                    imagePreview.innerHTML = `
+                        <i class="fas fa-image"></i>
+                        <span>Click to upload an image</span>
+                    `;
+                    imagePreview.classList.remove('has-image');
+                }
+                
                 // Update character counts
                 updateCharCount();
                 
